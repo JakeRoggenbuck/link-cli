@@ -1,9 +1,7 @@
 import argparse
 import requests
 from pathlib import Path
-from functools import cached_property
 import yaml
-import os
 
 CONFIG_PATH = Path.home() / Path(".config/link-cli")
 CONFIG_NAME = CONFIG_PATH / Path("config.yml")
@@ -39,28 +37,52 @@ def make_config_file():
 
 
 class Link:
-    def __init__(self):
-        pass
+    def __init__(self, cache=True):
+        self.cache = cache
+        self.cache_version = None
 
     @property
     def redirects(self):
         return requests.get(URL + "/api/redirects", headers=HEADERS).text
 
-    @cached_property
+    @property
     def version(self):
-        return requests.get(URL + "/api/version", headers=HEADERS).text
+        if self.cache_version is not None:
+            return self.cache_version
+
+        if self.cache:
+            self.cache_version = requests.get(
+                URL + "/api/version", headers=HEADERS
+            ).text
 
     def newredirect(self, name, url):
         print(name, url)
         return requests.get(URL + "/api/redirects", headers=HEADERS)
 
 
+def parser():
+    parse = argparse.ArgumentParser()
+    parse.add_argument("--api-version", help="Get version", action="store_true")
+    parse.add_argument("--redirects", help="Get redirects", action="store_true")
+    return parse.parse_args()
+
+
 def main():
-    make_config_dir()
-    make_config_file()
+    args = parser()
+
+    if not CONFIG_NAME.exists():
+        make_config_dir()
+        make_config_file()
 
     link = Link()
-    print(link.version)
+
+    if args.api_version:
+        print(link.version)
+        exit(0)
+
+    if args.redirects:
+        print(link.redirects)
+        exit(0)
 
 
 if __name__ == "__main__":
