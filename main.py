@@ -1,6 +1,7 @@
 import argparse
 import requests
 from pathlib import Path
+from functools import cached_property
 import yaml
 import os
 
@@ -23,8 +24,6 @@ HEADERS = {
     "x-api-key": KEY,
 }
 
-print(HEADERS)
-
 
 def make_config_dir():
     if not CONFIG_PATH.exists():
@@ -39,16 +38,29 @@ def make_config_file():
             file.write(yaml.dump(DEFAULT_CONFIG))
 
 
-def redirects():
-    res = requests.get(URL + "/api/redirects", headers=HEADERS)
-    print(res.text)
+class Link:
+    def __init__(self):
+        pass
+
+    @property
+    def redirects(self):
+        return requests.get(URL + "/api/redirects", headers=HEADERS).text
+
+    @cached_property
+    def version(self):
+        return requests.get(URL + "/api/version", headers=HEADERS).text
+
+    def newredirect(self, name, url):
+        print(name, url)
+        return requests.get(URL + "/api/redirects", headers=HEADERS)
 
 
 def main():
     make_config_dir()
     make_config_file()
 
-    redirects()
+    link = Link()
+    print(link.version)
 
 
 if __name__ == "__main__":
