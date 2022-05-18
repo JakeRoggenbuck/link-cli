@@ -29,9 +29,9 @@ def make_config_file():
 
 
 class Link:
-    def __init__(self, headers, cache: bool = True):
+    def __init__(self, headers, no_cache: bool = True):
         self.headers = headers
-        self.cache = cache
+        self.no_cache = no_cache
         self.cache_version = None
 
     @property
@@ -39,12 +39,25 @@ class Link:
         return requests.get(URL + "/api/redirects", headers=self.headers).text
 
     @property
-    def version(self):
-        if self.cache_version is not None:
-            return self.cache_version
+    def redirects_formatted(self):
+        total = "number alias url"
+        for line in self.redirects.split("\n"):
+            if line != "":
+                num, other = line.split(": ")
+                name, url = other.split(" -> ")
+                total += f"\n{num} {name} {url}"
+        return total
 
-        if self.cache:
-            self.cache_version = requests.get(URL + "/api/version", headers=self.headers).text
+    @property
+    def version(self):
+        if self.no_cache:
+            return requests.get(URL + "/api/version", headers=self.headers).text
+        else:
+            if self.cache_version is not None:
+                return self.cache_version
+            else:
+                self.cache_version = requests.get(URL + "/api/version", headers=self.headers).text
+                return self.cache_version
 
     def newredirect(self, name, url):
         print(name, url)
@@ -53,8 +66,11 @@ class Link:
 
 def parser():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--api-version", help="Get version", action="store_true")
-    parse.add_argument("--redirects", help="Get redirects", action="store_true")
+    parse.add_argument("-a", "--api-version", help="Get version", action="store_true")
+    parse.add_argument("-r", "--redirects", help="Get redirects", action="store_true")
+    parse.add_argument(
+        "-f", "--redirects-formatted", help="Get redirects formatted", action="store_true"
+    )
     return parse.parse_args()
 
 
@@ -80,6 +96,10 @@ def main():
 
     if args.redirects:
         print(link.redirects)
+        exit(0)
+
+    if args.redirects_formatted:
+        print(link.redirects_formatted)
         exit(0)
 
 
