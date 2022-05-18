@@ -15,14 +15,6 @@ def load_config():
         return yaml.safe_load(file)
 
 
-LOADED_CONFIG = load_config()
-KEY = LOADED_CONFIG["key"]
-HEADERS = {
-    "content-type": "application/json",
-    "x-api-key": KEY,
-}
-
-
 def make_config_dir():
     if not CONFIG_PATH.exists():
         CONFIG_PATH.mkdir(parents=True, exist_ok=True)
@@ -37,13 +29,14 @@ def make_config_file():
 
 
 class Link:
-    def __init__(self, cache=True):
+    def __init__(self, headers, cache: bool = True):
+        self.headers = headers
         self.cache = cache
         self.cache_version = None
 
     @property
     def redirects(self):
-        return requests.get(URL + "/api/redirects", headers=HEADERS).text
+        return requests.get(URL + "/api/redirects", headers=self.headers).text
 
     @property
     def version(self):
@@ -51,13 +44,11 @@ class Link:
             return self.cache_version
 
         if self.cache:
-            self.cache_version = requests.get(
-                URL + "/api/version", headers=HEADERS
-            ).text
+            self.cache_version = requests.get(URL + "/api/version", headers=self.headers).text
 
     def newredirect(self, name, url):
         print(name, url)
-        return requests.get(URL + "/api/redirects", headers=HEADERS)
+        return requests.get(URL + "/api/redirects", headers=self.headers)
 
 
 def parser():
@@ -74,7 +65,14 @@ def main():
         make_config_dir()
         make_config_file()
 
-    link = Link()
+    loaded_config = load_config()
+    key = loaded_config["key"]
+    headers = {
+        "content-type": "application/json",
+        "x-api-key": key,
+    }
+
+    link = Link(headers)
 
     if args.api_version:
         print(link.version)
