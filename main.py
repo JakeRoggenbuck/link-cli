@@ -61,16 +61,26 @@ class Link:
 
     def newredirect(self, name, url):
         print(name, url)
-        return requests.get(URL + "/api/redirects", headers=self.headers)
+        return requests.get(URL + "/api/newredirect", headers=self.headers)
+
+    def add_alias(self):
+        name = input("alias: ")
+        url = input("url: ")
+
+        if input("Both correct? [Y/n]: ").upper() == "Y":
+            print(self.newredirect(name, url).text)
+        else:
+            print("No request made.")
 
 
 def parser():
     parse = argparse.ArgumentParser()
-    parse.add_argument("-a", "--api-version", help="Get version", action="store_true")
+    parse.add_argument("-p", "--api-version", help="Get version", action="store_true")
     parse.add_argument("-r", "--redirects", help="Get redirects", action="store_true")
     parse.add_argument(
         "-f", "--redirects-formatted", help="Get redirects formatted", action="store_true"
     )
+    parse.add_argument("-a", "--add-alias", help="Add alias", action="store_true")
     return parse.parse_args()
 
 
@@ -92,15 +102,15 @@ def main():
 
     if args.api_version:
         print(link.version)
-        exit(0)
 
-    if args.redirects:
+    elif args.redirects:
         print(link.redirects)
-        exit(0)
 
-    if args.redirects_formatted:
+    elif args.redirects_formatted:
         print(link.redirects_formatted)
-        exit(0)
+
+    elif args.add_alias:
+        link.add_alias()
 
 
 if __name__ == "__main__":
