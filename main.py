@@ -80,18 +80,19 @@ class Link:
 
 
 def parser():
-    parse = argparse.ArgumentParser()
+    parse = argparse.ArgumentParser(description='CLI tool for link.jr0.org')
     parse.add_argument("-p", "--api-version", help="Get version", action="store_true")
     parse.add_argument("-r", "--redirects", help="Get redirects", action="store_true")
     parse.add_argument(
         "-f", "--redirects-formatted", help="Get redirects formatted", action="store_true"
     )
     parse.add_argument("-a", "--add-alias", help="Add alias", action="store_true")
-    return parse.parse_args()
+    return parse
 
 
 def main():
-    args = parser()
+    parse = parser()
+    args = parse.parse_args()
 
     if not CONFIG_NAME.exists():
         make_config_dir()
@@ -117,6 +118,9 @@ def main():
 
     elif args.add_alias:
         link.add_alias()
+
+    else:
+        parse.print_help()
 
 
 if __name__ == "__main__":
