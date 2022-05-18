@@ -60,14 +60,20 @@ class Link:
                 return self.cache_version
 
     def newredirect(self, name, url):
-        print(name, url)
-        return requests.get(URL + "/api/newredirect", headers=self.headers)
+        return requests.post(
+            URL + "/api/newredirect",
+            headers=self.headers,
+            data={
+                "alias": name,
+                "url": url,
+            },
+        )
 
     def add_alias(self):
         name = input("alias: ")
         url = input("url: ")
 
-        if input("Both correct? [Y/n]: ").upper() == "Y":
+        if input("Both correct? [Y/n]: ").upper() != "N":
             print(self.newredirect(name, url).text)
         else:
             print("No request made.")
