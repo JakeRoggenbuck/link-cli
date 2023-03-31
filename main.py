@@ -61,6 +61,9 @@ class Link:
                 return self.cache_version
 
     def newredirect(self, name, url):
+        new_headers = self.headers
+        new_headers["content-type"] = "application/x-www-form-urlencoded"
+
         return requests.post(
             URL + "/api/newredirect",
             headers=self.headers,
